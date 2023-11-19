@@ -133,25 +133,33 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 	}
 
-	_getSampler( texture, textureProperty, uvSnippet, shaderStage = this.shaderStage ) {
+	_generateTextureSample( texture, textureProperty, uvSnippet, depthSnippet, shaderStage = this.shaderStage ) {
 
 		if ( shaderStage === 'fragment' ) {
 
-			return `textureSample( ${textureProperty}, ${textureProperty}_sampler, ${uvSnippet} )`;
+			if ( depthSnippet ) {
+
+				return `textureSample( ${ textureProperty }, ${ textureProperty }_sampler, ${ uvSnippet }, ${ depthSnippet } )`;
+
+			} else {
+
+				return `textureSample( ${ textureProperty }, ${ textureProperty }_sampler, ${ uvSnippet } )`;
+
+			}
 
 		} else {
 
-			return this.getTextureLoad( texture, textureProperty, uvSnippet );
+			return this.generateTextureLod( texture, textureProperty, uvSnippet );
 
 		}
 
 	}
 
-	_getVideoSampler( textureProperty, uvSnippet, shaderStage = this.shaderStage ) {
+	_generateVideoSample( textureProperty, uvSnippet, shaderStage = this.shaderStage ) {
 
 		if ( shaderStage === 'fragment' ) {
 
-			return `textureSampleBaseClampToEdge( ${textureProperty}, ${textureProperty}_sampler, vec2<f32>( ${uvSnippet}.x, 1.0 - ${uvSnippet}.y ) )`;
+			return `textureSampleBaseClampToEdge( ${ textureProperty }, ${ textureProperty }_sampler, vec2<f32>( ${ uvSnippet }.x, 1.0 - ${ uvSnippet }.y ) )`;
 
 		} else {
 
@@ -161,27 +169,41 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 	}
 
-	_getSamplerLevel( texture, textureProperty, uvSnippet, biasSnippet, shaderStage = this.shaderStage ) {
+	_generateTextureSampleLevel( texture, textureProperty, uvSnippet, levelSnippet, depthSnippet, shaderStage = this.shaderStage ) {
 
 		if ( shaderStage === 'fragment' && this.isUnfilterable( texture ) === false ) {
 
-			return `textureSampleLevel( ${textureProperty}, ${textureProperty}_sampler, ${uvSnippet}, ${biasSnippet} )`;
+			return `textureSampleLevel( ${ textureProperty }, ${ textureProperty }_sampler, ${ uvSnippet }, ${ levelSnippet } )`;
 
 		} else {
 
-			return this.getTextureLoad( texture, textureProperty, uvSnippet, biasSnippet );
+			return this.generateTextureLod( texture, textureProperty, uvSnippet, levelSnippet );
 
 		}
 
 	}
 
-	getTextureLoad( texture, textureProperty, uvSnippet, biasSnippet = '0' ) {
+	generateTextureLod( texture, textureProperty, uvSnippet, levelSnippet = '0' ) {
 
 		this._include( 'repeatWrapping' );
 
-		const dimension = `textureDimensions( ${textureProperty}, 0 )`;
+		const dimension = `textureDimensions( ${ textureProperty }, 0 )`;
 
-		return `textureLoad( ${textureProperty}, threejs_repeatWrapping( ${uvSnippet}, ${dimension} ), i32( ${biasSnippet} ) )`;
+		return `textureLoad( ${ textureProperty }, threejs_repeatWrapping( ${ uvSnippet }, ${ dimension } ), i32( ${ levelSnippet } ) )`;
+
+	}
+
+	generateTextureLoad( texture, textureProperty, uvIndexSnippet, depthSnippet, levelSnippet = '0u' ) {
+
+		if ( depthSnippet ) {
+
+			return `textureLoad( ${ textureProperty }, ${ uvIndexSnippet }, ${ depthSnippet }, ${ levelSnippet } )`;
+
+		} else {
+
+			return `textureLoad( ${ textureProperty }, ${ uvIndexSnippet }, ${ levelSnippet } )`;
+
+		}
 
 	}
 
@@ -191,21 +213,21 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 	}
 
-	getTexture( texture, textureProperty, uvSnippet, shaderStage = this.shaderStage ) {
+	generateTexture( texture, textureProperty, uvSnippet, depthSnippet, shaderStage = this.shaderStage ) {
 
 		let snippet = null;
 
 		if ( texture.isVideoTexture === true ) {
 
-			snippet = this._getVideoSampler( textureProperty, uvSnippet, shaderStage );
+			snippet = this._generateVideoSample( textureProperty, uvSnippet, shaderStage );
 
 		} else if ( this.isUnfilterable( texture ) ) {
 
-			snippet = this.getTextureLoad( texture, textureProperty, uvSnippet );
+			snippet = this.generateTextureLod( texture, textureProperty, uvSnippet, '0', depthSnippet, shaderStage );
 
 		} else {
 
-			snippet = this._getSampler( texture, textureProperty, uvSnippet, shaderStage );
+			snippet = this._generateTextureSample( texture, textureProperty, uvSnippet, depthSnippet, shaderStage );
 
 		}
 
@@ -213,11 +235,11 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 	}
 
-	getTextureCompare( texture, textureProperty, uvSnippet, compareSnippet, shaderStage = this.shaderStage ) {
+	generateTextureCompare( texture, textureProperty, uvSnippet, compareSnippet, depthSnippet, shaderStage = this.shaderStage ) {
 
 		if ( shaderStage === 'fragment' ) {
 
-			return `textureSampleCompare( ${textureProperty}, ${textureProperty}_sampler, ${uvSnippet}, ${compareSnippet} )`;
+			return `textureSampleCompare( ${ textureProperty }, ${ textureProperty }_sampler, ${ uvSnippet }, ${ compareSnippet } )`;
 
 		} else {
 
@@ -227,17 +249,17 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 	}
 
-	getTextureLevel( texture, textureProperty, uvSnippet, biasSnippet, shaderStage = this.shaderStage ) {
+	generateTextureLevel( texture, textureProperty, uvSnippet, levelSnippet, depthSnippet, shaderStage = this.shaderStage ) {
 
 		let snippet = null;
 
 		if ( texture.isVideoTexture === true ) {
 
-			snippet = this._getVideoSampler( textureProperty, uvSnippet, shaderStage );
+			snippet = this._generateVideoSample( textureProperty, uvSnippet, shaderStage );
 
 		} else {
 
-			snippet = this._getSamplerLevel( texture, textureProperty, uvSnippet, biasSnippet, shaderStage );
+			snippet = this._generateTextureSampleLevel( texture, textureProperty, uvSnippet, levelSnippet, depthSnippet, shaderStage );
 
 		}
 
@@ -251,7 +273,7 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 			if ( shaderStage === 'vertex' ) {
 
-				return `NodeVaryings.${ node.name }`;
+				return `varyings.${ node.name }`;
 
 			}
 
@@ -646,7 +668,7 @@ ${ flowData.code }
 
 		const code = snippets.join( ',\n\t' );
 
-		return shaderStage === 'vertex' ? this._getWGSLStruct( 'NodeVaryingsStruct', '\t' + code ) : code;
+		return shaderStage === 'vertex' ? this._getWGSLStruct( 'VaryingsStruct', '\t' + code ) : code;
 
 	}
 
@@ -686,6 +708,10 @@ ${ flowData.code }
 				if ( texture.isCubeTexture === true ) {
 
 					textureType = 'texture_cube<f32>';
+
+				} else if ( texture.isDataArrayTexture === true ) {
+
+					textureType = 'texture_2d_array<f32>';
 
 				} else if ( texture.isDepthTexture === true ) {
 
@@ -796,7 +822,7 @@ ${ flowData.code }
 
 					if ( shaderStage === 'vertex' ) {
 
-						flow += 'NodeVaryings.Vertex = ';
+						flow += 'varyings.Vertex = ';
 
 					} else if ( shaderStage === 'fragment' ) {
 
@@ -876,15 +902,13 @@ ${shaderData.uniforms}
 
 // varyings
 ${shaderData.varyings}
+var<private> varyings : VaryingsStruct;
 
 // codes
 ${shaderData.codes}
 
 @vertex
-fn main( ${shaderData.attributes} ) -> NodeVaryingsStruct {
-
-	// system
-	var NodeVaryings: NodeVaryingsStruct;
+fn main( ${shaderData.attributes} ) -> VaryingsStruct {
 
 	// vars
 	${shaderData.vars}
@@ -892,7 +916,7 @@ fn main( ${shaderData.attributes} ) -> NodeVaryingsStruct {
 	// flow
 	${shaderData.flow}
 
-	return NodeVaryings;
+	return varyings;
 
 }
 `;

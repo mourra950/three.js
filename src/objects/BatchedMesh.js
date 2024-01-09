@@ -600,7 +600,7 @@ class BatchedMesh extends Mesh {
 		const active = this._active;
 		if ( active[ id ] === false ) {
 
-			return this;
+			return null;
 
 		}
 
@@ -643,7 +643,7 @@ class BatchedMesh extends Mesh {
 		const active = this._active;
 		if ( active[ id ] === false ) {
 
-			return this;
+			return null;
 
 		}
 
@@ -879,7 +879,7 @@ class BatchedMesh extends Mesh {
 
 	}
 
-	onBeforeRender( _renderer, _scene, camera, geometry, material/*, _group*/ ) {
+	onBeforeRender( renderer, scene, camera, geometry, material/*, _group*/ ) {
 
 		// if visibility has not changed and frustum culling and object sorting is not required
 		// then skip iterating over all items
@@ -894,6 +894,7 @@ class BatchedMesh extends Mesh {
 		const index = geometry.getIndex();
 		const bytesPerElement = index === null ? 1 : index.array.BYTES_PER_ELEMENT;
 
+		const active = this._active;
 		const visibility = this._visibility;
 		const multiDrawStarts = this._multiDrawStarts;
 		const multiDrawCounts = this._multiDrawCounts;
@@ -908,7 +909,7 @@ class BatchedMesh extends Mesh {
 				.multiply( this.matrixWorld );
 			_frustum.setFromProjectionMatrix(
 				_projScreenMatrix,
-				_renderer.isWebGPURenderer ? WebGPUCoordinateSystem : WebGLCoordinateSystem
+				renderer.isWebGPURenderer ? WebGPUCoordinateSystem : WebGLCoordinateSystem
 			);
 
 		}
@@ -922,7 +923,7 @@ class BatchedMesh extends Mesh {
 
 			for ( let i = 0, l = visibility.length; i < l; i ++ ) {
 
-				if ( visibility[ i ] ) {
+				if ( visibility[ i ] && active[ i ] ) {
 
 					// get the bounds in world space
 					this.getMatrixAt( i, _matrix );
@@ -976,7 +977,7 @@ class BatchedMesh extends Mesh {
 
 			for ( let i = 0, l = visibility.length; i < l; i ++ ) {
 
-				if ( visibility[ i ] ) {
+				if ( visibility[ i ] && active[ i ] ) {
 
 					// determine whether the batched geometry is within the frustum
 					let culled = false;
@@ -1006,6 +1007,12 @@ class BatchedMesh extends Mesh {
 
 		this._multiDrawCount = count;
 		this._visibilityChanged = false;
+
+	}
+
+	onBeforeShadow( renderer, object, camera, shadowCamera, geometry, depthMaterial/* , group */ ) {
+
+		this.onBeforeRender( renderer, null, shadowCamera, geometry, depthMaterial );
 
 	}
 

@@ -45,7 +45,7 @@
 	
 		<p>الخطوة التالية الأن هوالعارض. بالإضافة إلى إنشاء مثيل العارض,يتعين علينا أيضًا تعيين الحجم الذي نرغب في عرض تطبيقنا به.هنا من الفكرة الجيدة استخدام عرض وارتفاع المنطقة التي نرغب في ملئها بتطبيقنا - في هذه الحالة، عرض وارتفاع نافذة المتصفح. بالنسبة لتطبيقات تتطلب أداءً مكثفًا، يمكنك أيضًا تقديم قيم أصغر لـ `setSize`، مثل `window.innerWidth/2` و `window.innerHeight/2`، مما سيجعل التطبيق يعرض بحجم ربع الشاشة.</p>
 				
-		<p>إذا كنت ترغب في الاحتفاظ بحجم تطبيقك ولكن تقديمه بدقة أقل، يمكنك القيام بذلك عن طريق استخدام `setSize` و استخدام قيمه false ل`updateStyle` المعامل الثالث . على سبيل المثال، setSize(window.innerWidth/2, window.innerHeight/2, false) سيقوم بتقديم تطبيقك بدقة نصف الحجم، شريطةً أن لديك &lt;canvas&gt; بعرض وارتفاع 100% </p>
+		<p>إذا كنت ترغب في الاحتفاظ بحجم تطبيقك ولكن تقديمه بدقة أقل، يمكنك القيام بذلك عن طريق استخدام `setSize` و استخدام قيمه false ل`updateStyle` المعامل الثالث . على سبيل المثال، `setSize(window.innerWidth/2, window.innerHeight/2, false)` سيقوم بتقديم تطبيقك بدقة نصف الحجم، شريطةً أن لديك &lt;canvas&gt; بعرض وارتفاع 100% </p>
 
 		<p>أخيرا و ليس أخرا، سنقوم بإضافة `العارض - renderer` إلى ملف الHTML. <br> &lt; canvas &gt; هو وسم يستعمله العارض لإظهار المشهد من خلاله.</p>
 
@@ -75,13 +75,12 @@
 
 		<code>
 		function animate() {
-			requestAnimationFrame( animate );
-			renderer.render( scene, camera );
+			renderer.setAnimationLoop( animate );
 		}
-		animate();
+		renderer.setAnimationLoop( animate );
 		</code>
 		
-		<p>هذه الشفره ستقوم بإنشاء حلقة تكراريه تجعل العارض يعيد تحديث المشهد كل مرة يحدث فيها تغيير في الصفحة (أو نظرياهذا يعني 60 مرةخلال كل ثانية). إن كنت لا تملك تجربة مسبقة في صناعة ألعاب المتصفح، ستتسائل <em>"لماذا لا نستعمل setInterval؟"</em> الحقيقة أننا بإمكاننا ذلك و لكن `requestAnimationFrame` تقدم لنا العديد من المزايا. من أهما أنها تقوم بإيقاف العمل عندما يقوم المستعمل بتغيير الصفحة، بالإضافة لعدم إستهلاك قدرة الحاسب الخاص بالجهاز و عمر البطارية.</p>
+		<p>هذا الكود ستقوم بإنشاء حلقة تكراريه تجعل العارض يعيد تحديث المشهد كل مرة يحدث فيها تغيير في الصفحة (أو نظرياهذا يعني 60 مرةخلال كل ثانية). إن كنت لا تملك تجربة مسبقة في صناعة ألعاب المتصفح، ستتسائل <em>"لماذا لا نستعمل setInterval؟"</em> الحقيقة أننا بإمكاننا ذلك و لكن `requestAnimationFrame` تقدم لنا العديد من المزايا. من أهما أنها تقوم بإيقاف العمل عندما يقوم المستعمل بتغيير الصفحة، بالإضافة لعدم إستهلاك قدرة الحاسب الخاص بالجهاز و عمر البطارية.</p>
 
 		<h2>تحريك المكعب</h2>
 
@@ -127,28 +126,27 @@
 
 		const scene = new THREE.Scene();
 		const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
+		
 		const renderer = new THREE.WebGLRenderer();
 		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.setAnimationLoop( animate );
 		document.body.appendChild( renderer.domElement );
-
+		
 		const geometry = new THREE.BoxGeometry( 1, 1, 1 );
 		const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 		const cube = new THREE.Mesh( geometry, material );
 		scene.add( cube );
-
+		
 		camera.position.z = 5;
-
+		
 		function animate() {
-			requestAnimationFrame( animate );
-
+		
 			cube.rotation.x += 0.01;
 			cube.rotation.y += 0.01;
-
+		
 			renderer.render( scene, camera );
+		
 		}
-
-		animate();
 		</code>
 	</body>
 </html>

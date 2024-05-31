@@ -21,7 +21,7 @@
 		if ( WebGL.isWebGLAvailable() ) {
 
 			// Avviare qui la funzione o altre inizializzazioni
-			animate();
+			renderer.setAnimationLoop( animate );
 
 		} else {
 

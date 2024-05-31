@@ -746,8 +746,15 @@
 				"Scene": "api/ar/scenes/Scene"
 			}
 
-		}
+		},
+		"اضافات":{
+			"Renderers": {
+				"CSS2DRenderer": "examples/en/renderers/CSS2DRenderer",
+				"CSS3DRenderer": "examples/en/renderers/CSS3DRenderer",
+				"SVGRenderer": "examples/en/renderers/SVGRenderer"
 
+			}
+		}
 	},
 
 	"zh": {
